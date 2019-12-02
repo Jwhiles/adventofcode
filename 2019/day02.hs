@@ -3,9 +3,10 @@ import Data.Array
 import System.IO
 import Data.List
 import qualified Data.Text as DT
-import Debug.Trace
+import Core
 
-
+parser :: Parser (Array Int Int)
+parser txt = toListArr $ fmap (read . DT.unpack) $ DT.splitOn "," txt
 
 data Position = Position { getPosition :: Int }
 
@@ -57,8 +58,8 @@ step pos input =
   let instruction = getInstruction pos input
   in handleInstruction instruction input pos
 
-start :: Array Int Int -> Array Int Int
-start = 
+run :: Array Int Int -> Array Int Int
+run =
   step initialPosition
 
 -- Noun Verb Res
@@ -71,26 +72,23 @@ toListArr xs =
 
 main :: IO ()
 main = do
-  inputText <- DT.pack <$> readFile "./day02.txt"
-  let parsed =
-        toListArr $ fmap (read . DT.unpack) $ DT.splitOn "," inputText
-
+  input <- getInput parser "./day02.txt"
 
   -- PART ONE
-  let resultOne =  start $ parsed  // [(1, 12), (2, 2)]
+  let resultOne =  run $ input  // [(1, 12), (2, 2)]
   print $ resultOne ! 0
 
-
   -- PART TWO
-  let nounVerbPairs = [1..100] >>= (\n ->
-                        let verbs = [1..100]
-                        in fmap (\v -> (n,v)) verbs )
+  let nounVerbPairs = [(noun, verb) | noun <- [1..100], verb <- [1..100]]
 
   let possibilities =
         fmap (\(noun, verb) ->     
-            let result = start $ parsed // [(1, noun), (2, verb)]
+            let result = run $ input // [(1, noun), (2, verb)]
             in Result noun verb (result ! 0) ) nounVerbPairs
+
 
   let resultTwo = find (\(Result n v x) -> x == 19690720) possibilities
 
   print resultTwo
+
+-- $> main

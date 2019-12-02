@@ -2,8 +2,10 @@ module Day01 where
 import System.IO
 import Data.List
 import Data.Monoid
+import Core
+import Data.Text as DT
 
-getFuelRequirement :: Int -> Int 
+getFuelRequirement :: Int -> Int
 getFuelRequirement mass =
   (mass `div` 3) - 2
 
@@ -20,14 +22,25 @@ sumFuelReqWithFuel :: [ Int ] -> Int
 sumFuelReqWithFuel xs = getSum $
   foldMap (Sum. getFuelRequirementWithFuel) xs
 
+parser :: Parser [ Int ]
+parser = fmap (read . DT.unpack) . DT.lines
+
+partOneEx        :: [[Int]]
+partOneEx        = pure <$> [12,14,1969, 100756]
+partOneSolutions = [2, 2, 654,  33583 ]
+
 main :: IO ()
 main = do
-  input <- (fmap read . lines) <$> readFile "./day01.txt"
+  input <- getInput parser "./day01.txt"
+  problemOne <- runHarness $
+    Harness parser "./day01.txt" sumFuleReq partOneEx partOneSolutions
 
-  print $ getFuelRequirement 12 == 2
-  print $ getFuelRequirement 14 == 2
-  print $ getFuelRequirement 1969 == 654 
-  print $ getFuelRequirement 100756 == 33583
+  print problemOne
 
-  print $ sumFuleReq input
-  print $ sumFuelReqWithFuel input
+  problemTwo <- runHarness $
+    Harness parser "./day01.txt" sumFuelReqWithFuel [] []
+
+  print problemTwo
+
+--
+-- $> main

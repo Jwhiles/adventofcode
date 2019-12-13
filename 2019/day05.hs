@@ -1,111 +1,37 @@
+{-# Language GeneralizedNewtypeDeriving #-}
 {-# Language OverloadedStrings #-}
-import Data.Array
-import System.IO
-import Data.List
+{-# Language NamedFieldPuns #-}
+module Day05 where
+
+
+import Control.Monad.Trans.State
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
+import Data.Text (Text)
 import qualified Data.Text as DT
-import Core
 
-parser :: Parser (Array Int Int)
-parser txt = toListArr $ fmap (read . DT.unpack) $ DT.splitOn "," txt
+newtype Machine a = 
+  Machine { runMachine :: State MachineState a }
+  deriving (Functor, Applicative, Monad)
 
-data Position = Position { getPosition :: Int }
+data MachineState =
+  MachineState
+    { position :: Int
+    , program :: Map Int Int
+    }
 
-initialPosition :: Position
-initialPosition = Position 0
+loadTape :: [Int] -> Machine ()
+loadTape tape = Machine $
+  modify $ \m -> m { program = M.fromList (zip [0..] tape) }
 
-nextPosition :: Instruction -> Position -> Position
-nextPosition (Finish) pos = 
-  Position $ getPosition pos + 4
-nextPosition (Add _ _ _) pos = 
-  Position $ getPosition pos + 4
-nextPosition (Mult _ _ _) pos = 
-  Position $ getPosition pos + 4
-nextPosition (Save _) pos = 
-  Position $ getPosition pos + 2
-nextPosition (Output _) pos = 
-  Position $ getPosition pos + 2
+-- evalMachine :: Machine () -> Map Int Int
+-- evalMachine (Machine { runMachine }) = program $ execState runMachine M.empty
 
 
-data Instruction =
-  Finish | Add Int Int Int | Mult Int Int Int | Save Int | Output Int
+-- I need to use string because of the frickin opcode stuff
+parseProgram :: Text -> [String]
+parseProgram txt = DT.unpack <$> DT.splitOn "," txt
+  
 
-
-getInstruction :: Position -> Array Int Int  -> Instruction
-getInstruction position input =
-  let pos = getPosition position
-  in case (reverse $ tails $ show $ input ! pos) !! 2 of
-    "99" -> Finish
-
-    "01" ->
-      Add
-        (input ! (input ! (pos + 1)))
-        (input ! (input ! (pos + 2))) 
-        (input ! (pos + 3))
-
-    "02" ->
-      Mult
-        (input ! (input ! (pos + 1))) 
-        (input ! (input ! (pos + 2))) 
-        (input ! (pos + 3))
-
-    "03"  ->
-      Save
-        (input ! (input ! pos + 1))
-
-    "04"  ->
-      Output
-        (input ! (input ! pos + 1))
-    other ->
-      error ("Found invalid op code: " <> show other <> ". At position: " <> show pos)
-
-
-handleInstruction :: Instruction -> Array Int Int -> Position -> Array Int Int
-handleInstruction Finish input pos =
-  input
-
-handleInstruction (Add x y loc) input pos =
-  step (nextPosition pos) $ input // [(loc, x + y)]
-
-handleInstruction (Mult x y loc) input pos =
-  step (nextPosition pos) $ input // [(loc, x * y)]
-
-
-step :: Position -> Array Int Int -> Array Int Int
-step pos input =
-  let instruction = getInstruction pos input
-  in handleInstruction instruction input pos
-
-run :: Array Int Int -> Array Int Int
-run =
-  step initialPosition
-
--- Noun Verb Res
-data Result = Result Int Int Int
-  deriving Show
-
-toListArr xs = 
-  let end = Data.List.length xs - 1
-  in listArray (0, end) xs
-
-main :: IO ()
-main = do
-  input <- getInput parser "./day02.txt"
-
-  -- PART ONE
-  let resultOne =  run $ input  // [(1, 12), (2, 2)]
-  print $ resultOne ! 0
-
-  -- PART TWO
-  let nounVerbPairs = [(noun, verb) | noun <- [1..100], verb <- [1..100]]
-
-  let possibilities =
-        fmap (\(noun, verb) ->     
-            let result = run $ input // [(1, noun), (2, verb)]
-            in Result noun verb (result ! 0) ) nounVerbPairs
-
-
-  let resultTwo = find (\(Result n v x) -> x == 19690720) possibilities
-
-  print resultTwo
-
--- $> main
+-- THIS IS LARGELY COPIED FROM FRASER
+-- https://github.com/intolerable/advent19/blob/master/src/Advent/Intcode.hs

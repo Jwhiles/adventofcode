@@ -68,6 +68,16 @@ executables:
     dependencies:
     - advent-twentytwenty
 
+  advent-twentytwenty-day5:
+    main:                Main.hs
+    source-dirs:         app/Day05
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - advent-twentytwenty
+
 tests:
   advent-twentytwenty-test:
     main:                Spec.hs

@@ -1,8 +1,7 @@
-module Day01 where
+module Advent.Day01 where
 import System.IO
 import Data.List
-import Core
-import Debug.Trace
+import Advent.Core
 import qualified Data.Text as DT
 
 

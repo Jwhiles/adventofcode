@@ -1,9 +1,9 @@
 
 {-# Language OverloadedStrings #-}
-module Day03 where
+module Advent.Day03 where
 import System.IO
 import Data.List
-import Core
+import Advent.Core
 import qualified Data.Text as DT
 
 parser :: Parser [String]

@@ -1,8 +1,8 @@
 {-# Language OverloadedStrings #-}
-module Day02 where
+module Advent.Day02 where
 import System.IO
 import Data.List
-import Core
+import Advent.Core
 import Debug.Trace
 import qualified Data.Text as DT
 
@@ -67,5 +67,3 @@ main = do
 
   print problemTwo
 
---
--- $> main

@@ -1,6 +1,6 @@
 {-# Language NamedFieldPuns #-}
 {-# Language RecordWildCards #-}
-module Core where
+module Advent.Core where
 import Data.Text (Text, pack)
 
 type Parser i = Text -> i

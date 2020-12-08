@@ -23,12 +23,12 @@ runHarness Harness {..} = do
 
 
 
-  let x = zipWith (\input expected ->
-              let result = solution input
+  let x = zipWith (\input' expected ->
+              let result = solution input'
               in if result == expected
-                  then show input <> " was ok. \n got " <> show expected
+                  then show input' <> " was ok. \n got " <> show expected
                   else error $
-                    "failed on example: " <> show input <>
+                    "failed on example: " <> show input' <>
                     "\n got: " <> show result <>
                     "\n but expected: " <> show expected)
                     exampleInput expectedOutput

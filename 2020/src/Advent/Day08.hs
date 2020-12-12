@@ -75,10 +75,10 @@ switchJmpAndNop (Acc x) = Acc x
 switchJmpAndNop (Jmp x) = Nop x
 switchJmpAndNop (Nop x) = Jmp x
 
-mapElement :: Int -> [a] -> (a -> a) -> [a]
-mapElement i xs f =
+switchOpByIndex :: Int -> [Operation] -> [Operation]
+switchOpByIndex i xs =
   let (start,x:end) = Prelude.splitAt i xs
-  in start ++ (f x) : end
+  in start ++ (switchJmpAndNop x) : end
 
 getEnd :: Position Int -> State -> Visited -> [Operation] -> Maybe (Accumulator Int)
 getEnd end s@(State (position, accumulator)) visited ops =
@@ -93,9 +93,24 @@ getEnd end s@(State (position, accumulator)) visited ops =
 
 solutionTwo ops = 
   let endIndex = length ops
-      variations = (\i -> mapElement i ops switchJmpAndNop) <$> [0,1..(endIndex-1)]
-  in find isJust $
-       getEnd (Position endIndex) initialState Data.Set.empty <$> variations
+  in getEnd' (Position endIndex) initialState Data.Set.empty ops
+
+getEnd' :: Position Int -> State -> Visited -> [Operation] -> Maybe (Accumulator Int)
+getEnd' end s@(State (position, accumulator)) visited ops =
+  if member position visited 
+    then Nothing
+    else if position == end 
+           then Just accumulator
+           else let swappedCurrentOps = switchOpByIndex (unwrapP position) ops
+                in getEnd' end
+                  (moveState s (ops !! unwrapP position))
+                  (insert position visited)
+                  ops
+                <|>
+                getEnd end
+                  (moveState s ((swappedCurrentOps !! unwrapP position))
+                  (insert position visited)
+                  swappedCurrentOps
 
 
 main :: IO ()
@@ -107,15 +122,3 @@ main = do
       print $ solutionTwo parsed
   print ""
 
-
-
--- unused because I brute forced it
--- findMoves :: [Operation] -> DM.Map (Position Int) (Position Int)
--- findMoves ops = 
---   DM.fromList
---     $ (\(op, index) -> ((getPos $ moveState (State (Position index, Accumulator 0)) op), (Position index))) 
---     <$> zip ops [0,1..]
-  
--- findMissingLink :: DM.Map (Position Int) (Position Int) -> Position Int -> Position Int
--- findMissingLink moves prev = maybe prev (findMissingLink moves) $ DM.lookup prev moves 
--- $> Advent.Day08.main
